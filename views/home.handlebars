@@ -1,0 +1,69 @@
+<div class="container">
+    <h1>Priceza Crawler</h1>
+
+    <form class="form-inline">
+        <div class="form-group">
+            <label for="keyword">Keyword: </label>
+            <input type="text" id="keyword" class="form-control" />
+            <button type="button" class="btn btn-primary" onClick="search()">Search</button>
+        </div>
+        <p class="clearfix"></p>
+        <div id="result">
+            <div id="count"></div>
+            <p class="clearfix"></p>
+            <div id="page"></div>
+            <p class="clearfix"></p>
+            <div id="content" class="row"></div>
+        </div>
+    </form>
+</div>
+
+<script>
+    'use strict'
+
+    var perPage = 36
+    var totalPage = 0
+
+    function search(){
+        $('#count').html('')
+        $('#page').html('')
+        $('#content').html('')
+        $.ajax({
+            url: '/search/' + $('#keyword').val() ,
+            type: 'GET' ,
+            dataType: 'json'
+        }).done(function(data){
+            $('#count').html(data.count)
+            var total = data.count.split(' ')[1]
+            total = parseInt(total.split(',').join(''))
+            totalPage = Math.ceil(total / perPage)
+            $('#page').html(`
+                <form class="form-inline">  
+                    <div class="form-group">
+                        <label>Page: </label>
+                        <input type="text" id="pageInput" class="form-control input-sm" style="width:50px;" /> / ${totalPage}
+                        <button type="button" class="btn btn-primary btn-sm" id="goPage">Go</button>
+                    </div>
+                </form>
+            `)
+
+            $('#goPage').on('click', function(){
+                $.ajax({
+                    url: '/search/' + $('#keyword').val() + '/' + $('#pageInput').val() ,
+                    type: 'GET',
+                    dataType: 'json'
+                }).done(function(data){
+                    var html = ''
+                    data.title.forEach(function(value , index){
+                        html += `
+                        <div class="col-md-4">
+                            <p>${value}</p>
+                            <p>${data.price[index]}</p>
+                        </div>`
+                    })
+                    $('#content').html(html)
+                })
+            })
+        })
+    }
+</script>
